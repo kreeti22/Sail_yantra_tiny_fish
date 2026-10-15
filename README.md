@@ -1,4 +1,4 @@
-# ⚓ SAIL YANTRA — Maritime Intelligence & Chartering Decision Support Desk
+#  SAIL YANTRA — Maritime Intelligence & Chartering Decision Support Desk
 
 > **Autonomous AI-Driven Maritime Chartering & Predictive Analytics Platform**  
 > Integrated with **TinyFish Autonomous Web Agents** for Live Baltic Dry Index (BDI) and Marine Bunker Fuel Price Ingestion.
