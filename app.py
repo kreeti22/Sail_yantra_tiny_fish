@@ -627,6 +627,34 @@ def load_vessel_engine():
     from optimizer import VesselEngine
     return VesselEngine()
 
+@st.cache_data(ttl=60)
+def load_tinyfish_market():
+    """Retrieves live or cached TinyFish market intelligence."""
+    try:
+        from backend.services.cache_service import cache_service
+        import asyncio
+        loop = asyncio.new_event_loop()
+        bdi_data, bdi_fresh, bdi_time, bdi_src = loop.run_until_complete(cache_service.get_bdi())
+        bunker_data, bunker_fresh, bunker_time, bunker_src = loop.run_until_complete(cache_service.get_bunker())
+        loop.close()
+        return {
+            "bdi": bdi_data,
+            "bdi_freshness": bdi_fresh,
+            "bdi_time": bdi_time,
+            "bdi_src": bdi_src,
+            "bunker": bunker_data,
+            "bunker_freshness": bunker_fresh,
+            "bunker_time": bunker_time,
+            "bunker_src": bunker_src,
+        }
+    except Exception as e:
+        return {
+            "bdi": {"value": 1550.0, "daily_change": 0.0, "reporting_date": "Current"},
+            "bdi_freshness": "fallback",
+            "bunker": {"benchmark": {"price_usd_per_mt": 640.0, "port_name": "Singapore", "fuel_grade": "VLSFO"}},
+            "bunker_freshness": "fallback",
+        }
+
 @st.cache_data(ttl=300)
 def get_freight_forecast(route, cargo_type, vessel_class, market_event,
                          vessel_dwt, distance_nm, bdi, bunker, congestion):
@@ -753,13 +781,17 @@ with hc1:
                    color:{FG_MUTE};margin-left:1rem;">PROD v2.4.1</span>
     </div>""", unsafe_allow_html=True)
 with hc2:
+    tf_market_hdr = load_tinyfish_market()
+    bdi_hdr_val = int(tf_market_hdr["bdi"].get("value", 1550))
+    bunker_hdr_val = int(tf_market_hdr["bunker"].get("benchmark", {}).get("price_usd_per_mt", 640))
+    bdi_hdr_fresh = tf_market_hdr.get("bdi_freshness", "fallback")
     st.markdown(f"""
     <div style="padding:0.3rem 0 0.6rem 0;border-bottom:1px solid {BORDER};
                 font-family:'Space Mono',monospace;font-size:0.6rem;
                 color:{FG_MUTE};text-align:right;margin-bottom:0.8rem;">
-      <span style="color:{GREEN};">●</span> BDI LIVE &nbsp;·&nbsp;
-      <span style="color:{GREEN};">●</span> PLATTs LIVE &nbsp;·&nbsp;
-      <span style="color:{GREEN};">●</span> IPA SYNCED
+      <span style="color:{GREEN if bdi_hdr_fresh=='fresh' else AMBER};">●</span> BDI {bdi_hdr_val:,} &nbsp;·&nbsp;
+      <span style="color:{GREEN};">●</span> BUNKER ${bunker_hdr_val}/MT &nbsp;·&nbsp;
+      <span style="color:{GREEN};">●</span> TINYFISH SYNCED
       &nbsp;&nbsp;{now_ist.strftime('%d %b %Y  %H:%M IST')}
     </div>""", unsafe_allow_html=True)
 with hc3:
@@ -796,14 +828,42 @@ with st.sidebar:
     port         = st.selectbox("Destination Port", list(PORT_CONSTRAINTS.keys()))
     cargo_tonnes = st.number_input("Cargo Volume (MT)", 5000, 200000, 60000, 1000)
 
+    tf_market = load_tinyfish_market()
+    default_bdi = int(tf_market["bdi"].get("value", 1550))
+    default_bunker = int(tf_market["bunker"].get("benchmark", {}).get("price_usd_per_mt", 640))
+    bdi_freshness = tf_market.get("bdi_freshness", "fallback")
+
     st.markdown(f"""<div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:{FG_DIM};
                 letter-spacing:0.12em;text-transform:uppercase;
                 border-bottom:1px solid {BORDER2};padding-bottom:0.4rem;
-                margin:0.9rem 0 0.8rem 0;">📊 Market Conditions</div>""",
+                margin:0.9rem 0 0.8rem 0;display:flex;justify-content:space-between;align-items:center;">
+                <span>📊 Market Conditions</span>
+                <span style="color:{GREEN if bdi_freshness=='fresh' else AMBER};font-weight:700;">● TINYFISH {bdi_freshness.upper()}</span>
+                </div>""",
                 unsafe_allow_html=True)
 
-    bdi           = st.slider("BDI Index", 800, 4000, 1550, 50)
-    bunker        = st.slider("Bunker Price (USD/MT)", 400, 1000, 640, 10)
+    c_sync1, c_sync2 = st.columns([3, 2])
+    with c_sync1:
+        st.caption(f"Trading Economics BDI: **{default_bdi:,}**")
+        st.caption(f"Singapore VLSFO: **${default_bunker}/MT**")
+    with c_sync2:
+        if st.button("🔄 Sync Now", key="sync_tf_btn", help="Fetch live market intelligence via TinyFish"):
+            try:
+                import asyncio
+                from backend.services.bdi_service import bdi_service
+                from backend.services.bunker_service import bunker_service
+                loop = asyncio.new_event_loop()
+                loop.run_until_complete(bdi_service.fetch_live_bdi())
+                loop.run_until_complete(bunker_service.fetch_live_bunker_prices())
+                loop.close()
+                load_tinyfish_market.clear()
+                st.toast("TinyFish live sync completed!", icon="✅")
+                st.rerun()
+            except Exception as ex:
+                st.toast(f"Sync notice: {ex}", icon="ℹ️")
+
+    bdi           = st.slider("BDI Index", 800, 4000, max(800, min(4000, default_bdi)), 50)
+    bunker        = st.slider("Bunker Price (USD/MT)", 400, 1000, max(400, min(1000, default_bunker)), 10)
     congestion    = st.slider("Port Congestion (days)", 0.0, 8.0, 1.5, 0.5)
     wind_speed    = st.slider("Wind Speed (knots)", 0.0, 40.0, 12.0, 0.5)
     wave_height   = st.slider("Wave Height (m)", 0.0, 8.0, 2.0, 0.25)

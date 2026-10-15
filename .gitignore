@@ -18,6 +18,7 @@ venv.bak/
 # ── Environment variables / secrets ───────────────────────────────────────
 .env
 .env.*
+!.env.example
 *.env
 secrets.toml
 .streamlit/secrets.toml
@@ -45,6 +46,8 @@ $RECYCLE.BIN/
 runs/
 checkpoints/
 outputs/
+data/market_cache.json
+data/*.tmp
 
 # ── IDE / editor directories ───────────────────────────────────────────────
 .idea/

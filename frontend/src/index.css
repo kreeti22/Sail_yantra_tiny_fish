@@ -1,0 +1,208 @@
+:root {
+  --bg: #121212;
+  --bg-surface: #1a1a1a;
+  --bg-elevated: #222222;
+  --fg: #eef2ea;
+  --fg-dim: #a8b0a4;
+  --fg-mute: #626a5f;
+  --border: #333833;
+  --border-strong: #4f584f;
+  --accent: #a8c5a0;
+  --accent-green: #7bc97b;
+  --accent-amber: #c9a87b;
+  --accent-red: #c97b7b;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Work Sans', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme='light'] {
+  --bg: #eef2ea;
+  --bg-surface: #e4e8e0;
+  --bg-elevated: #d8ddd4;
+  --fg: #181c17;
+  --fg-dim: #4a5247;
+  --fg-mute: #828c7f;
+  --border: #c0c6bc;
+  --border-strong: #9ca698;
+  --accent: #2e5927;
+  --accent-green: #247524;
+  --accent-amber: #94621c;
+  --accent-red: #a32c2c;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Helpers */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+/* Neo-Brutalist Pill & Container Styles */
+.terminal-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  transition: border-color 0.15s ease;
+}
+
+.terminal-card:hover {
+  border-color: var(--border-strong);
+}
+
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pill-badge.fresh {
+  background: rgba(123, 201, 123, 0.12);
+  color: var(--accent-green);
+  border: 1px solid rgba(123, 201, 123, 0.3);
+}
+
+.pill-badge.stale {
+  background: rgba(201, 168, 123, 0.12);
+  color: var(--accent-amber);
+  border: 1px solid rgba(201, 168, 123, 0.3);
+}
+
+.pill-badge.fallback {
+  background: rgba(168, 197, 160, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(168, 197, 160, 0.3);
+}
+
+.pill-badge.error {
+  background: rgba(201, 123, 123, 0.12);
+  color: var(--accent-red);
+  border: 1px solid rgba(201, 123, 123, 0.3);
+}
+
+/* Pulsing dot */
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: pulse-animation 2s infinite ease-in-out;
+}
+
+@keyframes pulse-animation {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Neo-Brutalist Buttons */
+.btn-terminal {
+  background: var(--bg-elevated);
+  color: var(--fg);
+  border: 1px solid var(--border-strong);
+  padding: 0.55rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.btn-terminal:hover:not(:disabled) {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+.btn-terminal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+/* Inputs & Selects */
+input, select {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  border-radius: 3px;
+  width: 100%;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Data Table */
+.terminal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.terminal-table th {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--fg-mute);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.terminal-table td {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.terminal-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
